@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Каталог игр</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      background-color: #1e1e2f;
+      color: #fff;
+    }
+    .game {
+      background: #2b2b40;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    img {
+      width: 100%;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #3e8e41;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎮 Каталог игр</h2>
+  <div id="catalog"></div>
+
+  <script>
+    const games = {
+      "Half-Life 2": {
+        price_ton: 3.5,
+        description: "Культовая игра от Valve. Научная фантастика и стрельба.",
+        image_url: "https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg"
+      },
+      "Portal": {
+        price_ton: 2.1,
+        description: "Головоломка с порталами. Идеальная игра для разминки мозга.",
+        image_url: "https://cdn.cloudflare.steamstatic.com/steam/apps/400/header.jpg"
+      }
+    };
+
+    const catalogEl = document.getElementById("catalog");
+
+    for (const [name, data] of Object.entries(games)) {
+      const gameDiv = document.createElement("div");
+      gameDiv.className = "game";
+      gameDiv.innerHTML = `
+        <img src="${data.image_url}" alt="${name}">
+        <h3>${name}</h3>
+        <p>${data.description}</p>
+        <p>💰 Цена: <strong>${data.price_ton} TON</strong></p>
+        <button onclick="buy('${name}')">Купить</button>
+      `;
+      catalogEl.appendChild(gameDiv);
+    }
+
+    function buy(gameName) {
+      const tg = window.Telegram.WebApp;
+      tg.sendData(JSON.stringify({ action: "buy", game: gameName }));
+      tg.close();
+    }
+  </script>
+
+</body>
+</html>
+
+
