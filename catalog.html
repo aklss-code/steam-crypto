@@ -1,51 +1,62 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steam Crypto Catalog</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
   <h1>Каталог игр</h1>
   <p>Выберите игру и оплатите!</p>
 
-  <!-- Здесь у тебя могут быть кнопки или карточки игр -->
+  <button onclick="pay()">Оплатить тестовую игру (0.99 TON)</button>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-Telegram.WebApp.ready();
+    Telegram.WebApp.ready();
 
-Telegram.WebApp.onEvent('web_app_data', function(event) {
-    const response = JSON.parse(event.data);
+    function pay() {
+      const payload = {
+        action: "paid",
+        game: "Half-Life 2"
+      };
 
-    if (response.status === "success") {
-        document.body.innerHTML = `
-            <div style="text-align: center; margin-top: 50px;">
-                <h2>✅ Спасибо за покупку!</h2>
-                <p>Игра: ${response.game}</p>
-                <p><strong>Твой ключ:</strong></p>
-                <div style="margin: 10px; font-size: 20px;">${response.key}</div>
-                <button onclick="copyKey('${response.key}')" style="padding: 10px 20px;">Скопировать ключ</button>
-            </div>
-        `;
-    } else {
-        alert(response.message || "Произошла ошибка. Попробуйте снова.");
+      Telegram.WebApp.sendData(JSON.stringify(payload));
     }
-});
 
-function copyKey(key) {
-    navigator.clipboard.writeText(key).then(function() {
-        alert('Ключ скопирован!');
+    Telegram.WebApp.onEvent('web_app_data', function(event) {
+      console.log('Получены данные от бота', event.data);
+
+      try {
+        const response = JSON.parse(event.data);
+
+        if (response.status === "success") {
+          document.body.innerHTML = `
+            <div style="text-align:center; margin-top: 50px;">
+              <h2>✅ Спасибо за покупку!</h2>
+              <p>Игра: ${response.game}</p>
+              <p><strong>Твой ключ:</strong></p>
+              <div style="margin: 10px; font-size: 20px;">${response.key}</div>
+              <button onclick="copyKey('${response.key}')" style="padding: 10px 20px;">Скопировать ключ</button>
+            </div>
+          `;
+        } else {
+          document.body.innerHTML = `
+            <div style="text-align:center; margin-top: 50px;">
+              <h2>❌ Ошибка</h2>
+              <p>${response.message || "Произошла ошибка. Попробуйте снова."}</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        alert("Ошибка обработки ответа от бота.");
+      }
     });
-}
 
     function copyKey(key) {
-        navigator.clipboard.writeText(key).then(function() {
-            alert('Ключ скопирован!');
-        }, function(err) {
-            alert('Ошибка копирования: ' + err);
-        });
+      navigator.clipboard.writeText(key).then(function() {
+        alert('Ключ скопирован!');
+      });
     }
   </script>
 </body>
