@@ -3,98 +3,142 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Каталог игр - Steam Crypto</title>
+  <title>Steam Crypto — Каталог игр</title>
+  <script src="https://unpkg.com/@tonconnect/sdk@latest"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      background: #e9f5ff; /* <-- голубой фон, похожий на Telegram */
-      color: #000000;
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      background: #e9f5ff;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #000;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .catalog {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
     .game-card {
-      background: #ffffff;
-      border: 1px solid #ddd;
+      background: #fff;
       border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       padding: 15px;
-      margin-bottom: 20px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .game-card img {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
+      width: 100%;
+      max-width: 300px;
       border-radius: 8px;
     }
     .game-card h3 {
       margin-top: 10px;
+      margin-bottom: 5px;
+    }
+    .game-card p {
+      margin: 5px 0;
     }
     .buy-button {
       margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007aff;
-      color: white;
+      padding: 12px 25px;
+      background-color: #3b82f6;
+      color: #fff;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    .buy-button:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center;">Каталог игр 🎮</h1>
-  <div id="catalog"></div>
+  <h1>🎮 Каталог игр</h1>
+  <div class="catalog" id="catalog"></div>
 
   <script>
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: 'https://YOUR_SITE_PATH/tonconnect-manifest.json', // <-- потом заменим
+      buttonRootId: '', // мы будем подключать вручную, без TonConnect кнопки
+    });
+
     Telegram.WebApp.ready();
 
     const games = [
       {
         name: "Half-Life 2",
         description: "Культовый шутер от Valve",
-        price: "0.99 TON",
+        priceTon: 0.99,
         image: "https://upload.wikimedia.org/wikipedia/en/2/25/Half-Life_2_cover.jpg"
       },
       {
         name: "Portal",
         description: "Головоломка с портальной пушкой",
-        price: "2.1 TON",
+        priceTon: 2.1,
         image: "https://upload.wikimedia.org/wikipedia/en/d/d1/Portal_standalonebox.jpg"
       }
     ];
 
     const catalog = document.getElementById('catalog');
 
-    games.forEach(game => {
+    games.forEach((game) => {
       const card = document.createElement('div');
       card.className = 'game-card';
       card.innerHTML = `
         <img src="${game.image}" alt="${game.name}">
         <h3>${game.name}</h3>
         <p>${game.description}</p>
-        <p><strong>${game.price}</strong></p>
-        <button class="buy-button" onclick='buy("${game.name}")'>Купить</button>
+        <p><strong>${game.priceTon} TON</strong></p>
+        <button class="buy-button" onclick="buy('${game.name}', ${game.priceTon})">Купить</button>
       `;
       catalog.appendChild(card);
     });
 
-    function buy(gameName) {
-      const payload = {
-        action: "paid",
-        game: gameName
-      };
+    async function buy(gameName, priceTon) {
+      try {
+        const connectedWallet = await tonConnectUI.connectWallet();
 
-      Telegram.WebApp.sendData(JSON.stringify(payload));
+        if (!connectedWallet) {
+          alert('Кошелек не подключен.');
+          return;
+        }
 
-      // Мгновенно меняем экран после нажатия кнопки
-      document.body.innerHTML = `
-        <div style="text-align:center; margin-top: 50px;">
-          <h2>✅ Спасибо за покупку!</h2>
-          <p>🎮 Игра: ${gameName}</p>
-          <p><strong>Твой ключ появится скоро в сообщении от бота в Telegram!</strong></p>
-        </div>
-      `;
+        const result = await tonConnectUI.sendTransaction({
+          validUntil: Math.floor(Date.now() / 1000) + 600,
+          messages: [
+            {
+              address: 'UQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKKu2', // <-- сюда твой реальный кошелек для получения платежа!
+              amount: String(priceTon * 1_000_000_000), // Переводим в нанотоны
+              payload: ''
+            }
+          ]
+        });
+
+        console.log('Транзакция отправлена!', result);
+
+        Telegram.WebApp.sendData(JSON.stringify({
+          action: "paid",
+          game: gameName
+        }));
+
+        document.body.innerHTML = `
+          <div style="text-align: center; margin-top: 100px;">
+            <h2>✅ Спасибо за покупку!</h2>
+            <p>🎮 Игра: ${gameName}</p>
+            <p>Ваш ключ скоро придёт в чат Telegram.</p>
+          </div>
+        `;
+
+      } catch (error) {
+        console.error('Ошибка транзакции:', error);
+        alert('Ошибка при оплате. Попробуйте снова.');
+      }
     }
   </script>
 </body>
