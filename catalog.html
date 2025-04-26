@@ -7,12 +7,13 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      background: #ffffff;
+      background: #f2f2f2; /* <-- мягкий светло-серый фон */
       color: #000000;
       font-family: Arial, sans-serif;
       margin: 20px;
     }
     .game-card {
+      background: #ffffff;
       border: 1px solid #ddd;
       border-radius: 10px;
       padding: 15px;
@@ -87,37 +88,13 @@
       Telegram.WebApp.sendData(JSON.stringify(payload));
     }
 
-    Telegram.WebApp.onEvent('web_app_data', function(event) {
-      if (!event.data) {
-        return;
-      }
-
-      try {
-        const response = JSON.parse(event.data);
-
-        if (response.status === "success") {
-          document.body.innerHTML = `
-            <div style="text-align:center; margin-top: 50px;">
-              <h2>✅ Спасибо за покупку!</h2>
-              <p>Игра: ${response.game}</p>
-              <p><strong>Твой ключ:</strong></p>
-              <div style="margin: 10px; font-size: 20px;">${response.key}</div>
-              <button onclick="copyKey('${response.key}')" style="padding: 10px 20px;">Скопировать ключ</button>
-            </div>
-          `;
-        } else {
-          alert(response.message || "Ошибка при оплате.");
-        }
-      } catch (e) {
-        alert('Ошибка обработки ответа.');
-      }
+    Telegram.WebApp.onEvent('web_app_close', function() {
+      console.log('WebApp закрыт');
     });
 
-    function copyKey(key) {
-      navigator.clipboard.writeText(key).then(function() {
-        alert('Ключ скопирован!');
-      });
-    }
+    Telegram.WebApp.onEvent('web_app_data_send', function(event) {
+      console.log('Данные отправлены:', event);
+    });
   </script>
 </body>
 </html>
