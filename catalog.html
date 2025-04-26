@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steam Crypto — Каталог игр</title>
-  <script src="https://unpkg.com/@tonconnect/sdk@latest"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@latest"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -63,12 +63,11 @@
   <div class="catalog" id="catalog"></div>
 
   <script>
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://YOUR_SITE_PATH/tonconnect-manifest.json', // <-- потом заменим
-      buttonRootId: '', // мы будем подключать вручную, без TonConnect кнопки
-    });
-
     Telegram.WebApp.ready();
+
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      buttonRootId: undefined // без манифеста, без кнопки подключения
+    });
 
     const games = [
       {
@@ -113,8 +112,8 @@
           validUntil: Math.floor(Date.now() / 1000) + 600,
           messages: [
             {
-              address: 'UQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKKu2', // <-- сюда твой реальный кошелек для получения платежа!
-              amount: String(priceTon * 1_000_000_000), // Переводим в нанотоны
+              address: 'ВАШ_ТОН_АДРЕС', // <-- здесь укажи свой адрес EQ...
+              amount: String(priceTon * 1_000_000_000),
               payload: ''
             }
           ]
