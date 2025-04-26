@@ -1,98 +1,52 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Steam Crypto Catalog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 15px;
-      background: #1f1f2e;
-      color: #fff;
-    }
-    .game {
-      background: #2d2d42;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    img {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .title {
-      font-size: 20px;
-      margin: 10px 0;
-    }
-    .desc {
-      font-size: 14px;
-      color: #ccc;
-    }
-    .price {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    #ton-connect {
-      margin-top: 12px;
-    }
-  </style>
+  <title>Steam Crypto Catalog</title>
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+  <h1>Каталог игр</h1>
+  <p>Выберите игру и оплатите!</p>
 
-  <h2>🎮 Каталог игр</h2>
-  <div class="game">
-    <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg" alt="Half-Life 2">
-    <div class="title">Half-Life 2</div>
-    <div class="desc">Культовая научно-фантастическая стрелялка от Valve.</div>
-    <div class="price">💰 0.99 TON</div>
-    <div id="ton-connect"></div>
-  </div>
+  <!-- Здесь у тебя могут быть кнопки или карточки игр -->
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://ton-connect.github.io/demo-dapp/tonconnect-manifest.json', // можно заменить на свой позже
-      buttonRootId: 'ton-connect'
-    });
+    Telegram.WebApp.ready();
 
-    tonConnectUI.uiOptions = {
-      language: 'ru',
-      actionsConfiguration: {
-        twaReturnUrl: Telegram.WebApp.initDataUnsafe?.user?.username
-      }
-    };
-
-    tonConnectUI.onStatusChange(async wallet => {
-      if (wallet) {
-        const tx = {
-          validUntil: Math.floor(Date.now() / 1000) + 600,
-          messages: [{
-            address: 'UQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKKu2',  // <-- замени на свой адрес TON
-            amount: '990000000', // 0.99 TON в нанотонах
-            payload: ''
-          }]
-        };
-
+    // Слушаем ответ от бота
+    Telegram.WebApp.onEvent('web_app_data', function(event) {
         try {
-          const result = await tonConnectUI.sendTransaction(tx);
-          console.log("✅ TX:", result);
+            const response = JSON.parse(event.data);
 
-          Telegram.WebApp.sendData(JSON.stringify({
-            action: 'paid',
-            game: 'Half-Life 2',
-            tx: result
-          }));
-
-          Telegram.WebApp.close();
-        } catch (err) {
-          alert("❌ Платёж отменён или ошибка.");
+            if (response.status === 'success') {
+                document.body.innerHTML = `
+                    <div style="text-align: center; margin-top: 50px;">
+                        <h2>✅ Спасибо за покупку!</h2>
+                        <p>Игра: ${response.game}</p>
+                        <p><strong>Твой ключ:</strong></p>
+                        <div style="margin: 10px; font-size: 20px;">${response.key}</div>
+                        <button onclick="copyKey('${response.key}')" style="padding: 10px 20px; margin-top: 20px;">Скопировать ключ</button>
+                    </div>
+                `;
+            } else {
+                alert(response.message || "Произошла ошибка. Попробуйте ещё раз.");
+            }
+        } catch (e) {
+            alert("Ошибка обработки данных");
         }
-      }
     });
-  </script>
 
+    function copyKey(key) {
+        navigator.clipboard.writeText(key).then(function() {
+            alert('Ключ скопирован!');
+        }, function(err) {
+            alert('Ошибка копирования: ' + err);
+        });
+    }
+  </script>
 </body>
 </html>
 
