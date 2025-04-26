@@ -14,30 +14,31 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    Telegram.WebApp.ready();
+Telegram.WebApp.ready();
 
-    // Слушаем ответ от бота
-    Telegram.WebApp.onEvent('web_app_data', function(event) {
-        try {
-            const response = JSON.parse(event.data);
+Telegram.WebApp.onEvent('web_app_data', function(event) {
+    const response = JSON.parse(event.data);
 
-            if (response.status === 'success') {
-                document.body.innerHTML = `
-                    <div style="text-align: center; margin-top: 50px;">
-                        <h2>✅ Спасибо за покупку!</h2>
-                        <p>Игра: ${response.game}</p>
-                        <p><strong>Твой ключ:</strong></p>
-                        <div style="margin: 10px; font-size: 20px;">${response.key}</div>
-                        <button onclick="copyKey('${response.key}')" style="padding: 10px 20px; margin-top: 20px;">Скопировать ключ</button>
-                    </div>
-                `;
-            } else {
-                alert(response.message || "Произошла ошибка. Попробуйте ещё раз.");
-            }
-        } catch (e) {
-            alert("Ошибка обработки данных");
-        }
+    if (response.status === "success") {
+        document.body.innerHTML = `
+            <div style="text-align: center; margin-top: 50px;">
+                <h2>✅ Спасибо за покупку!</h2>
+                <p>Игра: ${response.game}</p>
+                <p><strong>Твой ключ:</strong></p>
+                <div style="margin: 10px; font-size: 20px;">${response.key}</div>
+                <button onclick="copyKey('${response.key}')" style="padding: 10px 20px;">Скопировать ключ</button>
+            </div>
+        `;
+    } else {
+        alert(response.message || "Произошла ошибка. Попробуйте снова.");
+    }
+});
+
+function copyKey(key) {
+    navigator.clipboard.writeText(key).then(function() {
+        alert('Ключ скопирован!');
     });
+}
 
     function copyKey(key) {
         navigator.clipboard.writeText(key).then(function() {
