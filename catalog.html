@@ -3,34 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Steam Crypto Catalog</title>
+  <title>Каталог игр - Steam Crypto</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .game-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .game-card img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .game-card h3 {
+      margin-top: 10px;
+    }
+    .buy-button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007aff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
-  <div id="main">
-    <h1>Каталог игр</h1>
-    <p>Выберите игру и оплатите!</p>
-
-    <button onclick="pay()">Оплатить тестовую игру (0.99 TON)</button>
-  </div>
+<body>
+  <h1 style="text-align:center;">Каталог игр 🎮</h1>
+  <div id="catalog"></div>
 
   <script>
     Telegram.WebApp.ready();
 
-    function pay() {
+    const games = [
+      {
+        name: "Half-Life 2",
+        description: "Культовый шутер от Valve",
+        price: "0.99 TON",
+        image: "https://upload.wikimedia.org/wikipedia/en/2/25/Half-Life_2_cover.jpg"
+      },
+      {
+        name: "Portal",
+        description: "Головоломка с портальной пушкой",
+        price: "2.1 TON",
+        image: "https://upload.wikimedia.org/wikipedia/en/d/d1/Portal_standalonebox.jpg"
+      }
+      // Можешь добавить больше игр сюда
+    ];
+
+    const catalog = document.getElementById('catalog');
+
+    games.forEach(game => {
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.innerHTML = `
+        <img src="${game.image}" alt="${game.name}">
+        <h3>${game.name}</h3>
+        <p>${game.description}</p>
+        <p><strong>${game.price}</strong></p>
+        <button class="buy-button" onclick='buy("${game.name}")'>Купить</button>
+      `;
+      catalog.appendChild(card);
+    });
+
+    function buy(gameName) {
       const payload = {
         action: "paid",
-        game: "Half-Life 2"
+        game: gameName
       };
 
       Telegram.WebApp.sendData(JSON.stringify(payload));
     }
 
     Telegram.WebApp.onEvent('web_app_data', function(event) {
-      console.log('Получены данные от бота:', event.data);
-
       if (!event.data) {
-        console.log('Нет данных от бота. Просто продолжаем работу.');
         return;
       }
 
@@ -48,15 +107,10 @@
             </div>
           `;
         } else {
-          document.body.innerHTML = `
-            <div style="text-align:center; margin-top: 50px;">
-              <h2>❌ Ошибка</h2>
-              <p>${response.message || "Произошла ошибка. Попробуйте снова."}</p>
-            </div>
-          `;
+          alert(response.message || "Ошибка при оплате.");
         }
       } catch (e) {
-        console.log('Ошибка обработки данных:', e);
+        alert('Ошибка обработки ответа.');
       }
     });
 
