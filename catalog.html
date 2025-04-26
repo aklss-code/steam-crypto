@@ -7,10 +7,12 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
-  <h1>Каталог игр</h1>
-  <p>Выберите игру и оплатите!</p>
+  <div id="main">
+    <h1>Каталог игр</h1>
+    <p>Выберите игру и оплатите!</p>
 
-  <button onclick="pay()">Оплатить тестовую игру (0.99 TON)</button>
+    <button onclick="pay()">Оплатить тестовую игру (0.99 TON)</button>
+  </div>
 
   <script>
     Telegram.WebApp.ready();
@@ -25,7 +27,12 @@
     }
 
     Telegram.WebApp.onEvent('web_app_data', function(event) {
-      console.log('Получены данные от бота', event.data);
+      console.log('Получены данные от бота:', event.data);
+
+      if (!event.data) {
+        console.log('Нет данных от бота. Просто продолжаем работу.');
+        return;
+      }
 
       try {
         const response = JSON.parse(event.data);
@@ -49,7 +56,7 @@
           `;
         }
       } catch (e) {
-        alert("Ошибка обработки ответа от бота.");
+        console.log('Ошибка обработки данных:', e);
       }
     });
 
