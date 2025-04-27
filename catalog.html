@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steam Crypto — Каталог игр</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@0.0.4/dist/tonconnect-ui.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -65,9 +64,7 @@
   <script>
     Telegram.WebApp.ready();
 
-    const tonConnectUI = new TonConnectUI.TonConnectUI({
-      manifestUrl: "https://aklss-code.github.io/steam-crypto/tonconnect-manifest.json"
-    });
+    const walletAddress = 'EQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKPZz'; // <-- сюда твой реальный кошелек TON!
 
     const games = [
       {
@@ -99,45 +96,23 @@
       catalog.appendChild(card);
     });
 
-    async function buy(gameName, priceTon) {
-      try {
-        const connectedWallet = await tonConnectUI.connectWallet();
+    function buy(gameName, priceTon) {
+      const amountNano = Math.floor(priceTon * 1_000_000_000); // в нанотонах
+      const link = `ton://transfer/${walletAddress}?amount=${amountNano}&text=Steam%20Crypto%20${encodeURIComponent(gameName)}`;
 
-        if (!connectedWallet) {
-          alert('Кошелек не подключен.');
-          return;
-        }
+      // Открываем ссылку оплаты
+      window.location.href = link;
 
-        const result = await tonConnectUI.sendTransaction({
-          validUntil: Math.floor(Date.now() / 1000) + 600,
-          messages: [
-            {
-              address: 'EQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKPZz', // <-- здесь вставь свой реальный кошелек TON!
-              amount: String(priceTon * 1_000_000_000),
-              payload: ''
-            }
-          ]
-        });
-
-        console.log('Транзакция отправлена!', result);
-
-        Telegram.WebApp.sendData(JSON.stringify({
-          action: "paid",
-          game: gameName
-        }));
-
+      // Показываем сообщение пользователю
+      setTimeout(() => {
         document.body.innerHTML = `
           <div style="text-align: center; margin-top: 100px;">
-            <h2>✅ Спасибо за покупку!</h2>
-            <p>🎮 Игра: ${gameName}</p>
-            <p>Ваш ключ скоро придёт в чат Telegram.</p>
+            <h2>✅ Почти готово!</h2>
+            <p>💎 Оплатите игру в вашем кошельке.</p>
+            <p>🛬 После оплаты вернитесь сюда или в Telegram, чтобы получить ключ!</p>
           </div>
         `;
-
-      } catch (error) {
-        console.error('Ошибка транзакции:', error);
-        alert('Ошибка при оплате. Попробуйте снова.');
-      }
+      }, 1000);
     }
   </script>
 </body>
