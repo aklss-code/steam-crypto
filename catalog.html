@@ -79,10 +79,12 @@
 <script>
   Telegram.WebApp.ready();
 
-  const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: 'https://aklss-code.github.io/steam-crypto/tonconnect-manifest.json'
-  });
-
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://aklss-code.github.io/steam-crypto/tonconnect-manifest.json',
+  uiOptions: {
+    twaReturnUrl: Telegram.WebApp.initDataUnsafe?.user?.username || window.location.href
+  }
+});
   const games = [
     {
       name: "Half-Life 2",
