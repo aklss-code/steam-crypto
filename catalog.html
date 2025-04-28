@@ -12,43 +12,93 @@
       padding: 15px;
       background: #1f1f2e;
       color: #fff;
+      margin: 0;
     }
-    .game {
-      background: #2d2d42;
-      border-radius: 10px;
-      padding: 15px;
+
+    h2 {
+      font-size: 24px;
+      color: #ffcb00;
+      text-align: center;
       margin-bottom: 20px;
     }
-    img {
+
+    .game-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .game-card {
+      background: #2d2d42;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      color: #fff;
+    }
+
+    .game-card img {
       width: 100%;
       border-radius: 8px;
     }
-    .title {
-      font-size: 20px;
+
+    .game-card .title {
+      font-size: 18px;
       margin: 10px 0;
     }
-    .desc {
+
+    .game-card .desc {
       font-size: 14px;
       color: #ccc;
+      margin: 10px 0;
     }
-    .price {
+
+    .game-card .price {
       font-weight: bold;
       margin-top: 10px;
     }
-    #ton-connect {
-      margin-top: 12px;
+
+    .buy-btn {
+      background: #ffcb00;
+      color: #1f1f2e;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.3s ease;
+    }
+
+    .buy-btn:hover {
+      background: #e4b700;
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .game-container {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
 
   <h2>🎮 Каталог игр</h2>
-  <div class="game">
-    <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg" alt="Half-Life 2">
-    <div class="title">Half-Life 2</div>
-    <div class="desc">Культовая научно-фантастическая стрелялка от Valve.</div>
-    <div class="price">💰 0.99 TON</div>
-    <button id="buy-game-btn">Купить</button>
+  <div class="game-container">
+    <div class="game-card">
+      <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg" alt="Half-Life 2">
+      <div class="title">Half-Life 2</div>
+      <div class="desc">Культовая научно-фантастическая стрелялка от Valve.</div>
+      <div class="price">💰 0.99 TON</div>
+      <button class="buy-btn" id="buy-game-btn">Купить</button>
+    </div>
   </div>
 
   <script>
@@ -88,6 +138,9 @@
             alert("❌ Ошибка при оплате");
           });
         }
+      }).catch(err => {
+        console.error("Ошибка подключения кошелька:", err);
+        alert("❌ Не удалось подключить кошелек.");
       });
     });
   </script>
