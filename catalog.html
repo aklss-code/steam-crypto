@@ -23,19 +23,20 @@
     }
 
     .game-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 20px;
-      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .game-card {
       background: #2d2d42;
       border-radius: 10px;
       padding: 20px;
+      margin-bottom: 20px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       text-align: center;
-      color: #fff;
+      width: 100%;
+      max-width: 400px;
     }
 
     .game-card img {
@@ -75,15 +76,14 @@
       background: #e4b700;
     }
 
-    @media (max-width: 768px) {
-      .game-container {
-        grid-template-columns: 1fr 1fr;
-      }
+    #ton-connect {
+      margin-top: 20px;
+      text-align: center;
     }
 
     @media (max-width: 480px) {
       .game-container {
-        grid-template-columns: 1fr;
+        padding: 10px;
       }
     }
   </style>
@@ -97,7 +97,8 @@
       <div class="title">Half-Life 2</div>
       <div class="desc">Культовая научно-фантастическая стрелялка от Valve.</div>
       <div class="price">💰 0.99 TON</div>
-      <button class="buy-btn" id="buy-game-btn">Купить</button>
+      <button id="buy-btn" class="buy-btn">Купить</button>
+      <div id="ton-connect"></div>
     </div>
   </div>
 
@@ -107,44 +108,32 @@
       buttonRootId: 'ton-connect'
     });
 
-    tonConnectUI.uiOptions = {
-      language: 'ru',
-      actionsConfiguration: {
-        twaReturnUrl: Telegram.WebApp.initDataUnsafe?.user?.username
-      }
-    };
+    const buyButton = document.getElementById('buy-btn');
 
-    document.getElementById("buy-game-btn").addEventListener('click', async () => {
+    buyButton.addEventListener('click', async () => {
       try {
-        const connectedWallet = await tonConnectUI.connectWallet();
-        if (!connectedWallet) {
-          alert('❌ Кошелек не подключен');
-          return;
-        }
-
-        const transaction = {
+        const tx = {
           validUntil: Math.floor(Date.now() / 1000) + 600,
           messages: [{
-            address: 'EQCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // <-- ВСТАВЬ свой адрес кошелька
+            address: 'EQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKPZz', // <-- Твой адрес
             amount: '990000000', // 0.99 TON в нанотонах
             payload: ''
           }]
         };
 
-        const txResult = await tonConnectUI.sendTransaction(transaction);
-        console.log("✅ TX:", txResult);
+        const transactionResult = await tonConnectUI.sendTransaction(tx);
+        console.log("✅ TX:", transactionResult);
 
         Telegram.WebApp.sendData(JSON.stringify({
           action: 'paid',
           game: 'Half-Life 2',
-          tx: txResult
+          tx: transactionResult
         }));
 
         Telegram.WebApp.close();
-
       } catch (error) {
         console.error('❌ Ошибка при оплате:', error);
-        alert('❌ Произошла ошибка при оплате.');
+        alert('❌ Не удалось провести оплату.');
       }
     });
   </script>
