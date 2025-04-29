@@ -2,134 +2,167 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Steam Crypto — Каталог игр</title>
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Каталог игр</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 15px;
-      background: #1f1f2e;
-      color: #fff;
-      margin: 0;
-    }
-
-    h2 {
-      font-size: 24px;
-      color: #ffcb00;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .game-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin: 20px;
+      background: #f5f5f5;
     }
 
     .game-card {
-      background: #2d2d42;
+      background: white;
+      border: 1px solid #ccc;
       border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      display: inline-block;
+      vertical-align: top;
       text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .game-card img {
-      width: 100%;
-      border-radius: 8px;
-    }
-
-    .game-card .title {
-      font-size: 18px;
-      margin: 10px 0;
-    }
-
-    .game-card .desc {
-      font-size: 14px;
-      color: #ccc;
-      margin: 10px 0;
-    }
-
-    .game-card .price {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .buy-btn {
-      background: #ffcb00;
-      color: #1f1f2e;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       cursor: pointer;
-      margin-top: 15px;
-      transition: background 0.3s ease;
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .game-card:hover {
+      transform: scale(1.03);
+    }
+    .game-cover {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .new-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ff4757;
+      color: white;
+      padding: 3px 7px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    #games-container {
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      border: none;
+      background: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
     }
 
-    .buy-btn:hover {
-      background: #e4b700;
+    /* Модальное окно */
+    #gameModal {
+      display: none;
+      position: fixed;
+      top: 5%;
+      left: 5%;
+      width: 90%;
+      height: 90%;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      z-index: 1000;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-
-    @media (max-width: 480px) {
-      .game-container {
-        padding: 10px;
-      }
+    #modalClose {
+      cursor: pointer;
+      float: right;
+      font-size: 24px;
+    }
+    #modalImage {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
     }
   </style>
 </head>
+
 <body>
 
-  <h2>🎮 Каталог игр</h2>
-  <div class="game-container">
-    <div class="game-card">
-      <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg" alt="Half-Life 2">
-      <div class="title">Half-Life 2</div>
-      <div class="desc">Культовая научно-фантастическая стрелялка от Valve.</div>
-      <div class="price">💰 0.99 TON</div>
-      <button id="buy-btn" class="buy-btn">Купить</button>
-    </div>
+  <h1>Каталог игр</h1>
+
+  <div id="games-container"></div>
+
+  <!-- Модальное окно -->
+  <div id="gameModal">
+    <span id="modalClose" onclick="closeModal()">❌</span>
+    <h2 id="modalTitle"></h2>
+    <img id="modalImage" />
+    <p id="modalDescription"></p>
+    <p id="modalPrice"></p>
+    <button id="buyButton">Купить</button>
   </div>
 
   <script>
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://ton-connect.github.io/demo-dapp/tonconnect-manifest.json'
-    });
+    let gamesDB = {}; 
 
-    const buyButton = document.getElementById('buy-btn');
+    fetch('games_db.json')
+      .then(response => response.json())
+      .then(data => {
+        gamesDB = data;
+        renderGames();
+      });
 
-    buyButton.addEventListener('click', async () => {
-      try {
-        const transaction = {
-          validUntil: Math.floor(Date.now() / 1000) + 600,
-          messages: [{
-            address: 'EQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKPZz', // <-- твой кошелек
-            amount: '990000000', // 0.99 TON в нанотонах
-            payload: ''
-          }]
-        };
+    function renderGames() {
+      const container = document.getElementById('games-container');
+      container.innerHTML = '';
 
-        const result = await tonConnectUI.sendTransaction(transaction);
-        console.log("✅ TX:", result);
+      Object.keys(gamesDB).forEach(gameName => {
+        const game = gamesDB[gameName];
 
-        Telegram.WebApp.sendData(JSON.stringify({
-          action: 'paid',
-          game: 'Half-Life 2',
-          tx: result
-        }));
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.onclick = () => showGameDetails(gameName);
 
-        Telegram.WebApp.close();
+        card.innerHTML = `
+          ${game.is_new ? '<div class="new-tag">Новинка</div>' : ''}
+          <img src="${game.cover_url}" alt="${gameName}" class="game-cover" />
+          <h3>${gameName}</h3>
+          <p><strong>${game.price_ton} TON</strong></p>
+          <button onclick="event.stopPropagation(); showGameDetails('${gameName}')">Подробнее</button>
+        `;
 
-      } catch (error) {
-        console.error('❌ Ошибка при оплате:', error);
-        alert('❌ Оплата не прошла, попробуйте ещё раз.');
-      }
-    });
+        container.appendChild(card);
+      });
+    }
+
+    function showGameDetails(gameName) {
+      const game = gamesDB[gameName];
+
+      document.getElementById('modalTitle').innerText = gameName;
+      document.getElementById('modalImage').src = game.cover_url;
+      document.getElementById('modalDescription').innerText = game.description;
+      document.getElementById('modalPrice').innerHTML = `<strong>Цена: ${game.price_ton} TON</strong>`;
+
+      document.getElementById('buyButton').onclick = function(event) {
+        event.stopPropagation();
+        buyGame(gameName);
+      };
+
+      document.getElementById('gameModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('gameModal').style.display = 'none';
+    }
+
+    function buyGame(gameName) {
+      alert(`Вы выбрали покупку игры: ${gameName}`);
+      // Здесь потом будет window.Telegram.WebApp.sendData(gameName);
+    }
   </script>
 
 </body>
