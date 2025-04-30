@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +18,7 @@
 
     h2 {
       font-size: 24px;
-      color: #ffcb00;
+      color: #4A90E2;
       text-align: center;
       margin-bottom: 20px;
     }
@@ -30,12 +31,14 @@
     }
 
     .game-card {
+      position: relative;
       background: #2d2d42;
       border-radius: 10px;
       padding: 20px;
       width: 300px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       text-align: center;
+      cursor: pointer;
     }
 
     .game-card img {
@@ -48,31 +51,83 @@
       margin: 10px 0;
     }
 
-    .game-card .desc {
-      font-size: 14px;
-      color: #ccc;
+    .badge {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background-color: #4A90E2;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 5px;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    .modal-content {
+      background-color: #2d2d42;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .modal-content img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .modal-content .title {
+      font-size: 20px;
       margin: 10px 0;
     }
 
-    .game-card .price {
+    .modal-content .desc {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    .modal-content .price {
+      margin: 15px 0;
       font-weight: bold;
-      margin-top: 10px;
+      font-size: 16px;
     }
 
     .buy-btn {
-      background: #ffcb00;
-      color: #1f1f2e;
+      background: #4A90E2;
+      color: #fff;
       border: none;
       padding: 10px 20px;
       font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 15px;
+      margin-top: 10px;
       transition: background 0.3s ease;
     }
 
     .buy-btn:hover {
-      background: #e4b700;
+      background: #3c7cd6;
+    }
+
+    .close {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #aaa;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -81,53 +136,82 @@
   <h2>🎮 Каталог игр</h2>
   <div id="game-container" class="game-container"></div>
 
+  <!-- Modal -->
+  <div id="game-modal" class="modal">
+    <div class="modal-content" id="modal-content">
+      <img src="" id="modal-image" alt="">
+      <div class="title" id="modal-title"></div>
+      <div class="desc" id="modal-desc"></div>
+      <div class="price" id="modal-price"></div>
+      <button class="buy-btn" id="modal-buy">Купить</button>
+      <div class="close" onclick="closeModal()">Закрыть</div>
+    </div>
+  </div>
+
   <script>
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: 'https://ton-connect.github.io/demo-dapp/tonconnect-manifest.json'
+    });
+
     const games = [
       {
         title: "Half-Life 2",
         image: "https://cdn.cloudflare.steamstatic.com/steam/apps/220/header.jpg",
         description: "Культовая научно-фантастическая стрелялка от Valve.",
-        priceTon: 0.99
+        priceTon: 0.99,
+        new: false
       },
       {
         title: "Portal",
         image: "https://cdn.cloudflare.steamstatic.com/steam/apps/400/header.jpg",
         description: "Головоломка с портальной пушкой от Valve.",
-        priceTon: 1.2
+        priceTon: 1.2,
+        new: true
       },
       {
         title: "Left 4 Dead 2",
         image: "https://cdn.cloudflare.steamstatic.com/steam/apps/550/header.jpg",
         description: "Культовый кооперативный зомби-шутер.",
-        priceTon: 1.5
+        priceTon: 1.5,
+        new: true
       }
     ];
 
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://ton-connect.github.io/demo-dapp/tonconnect-manifest.json'
-    });
-
     const container = document.getElementById("game-container");
+    const modal = document.getElementById("game-modal");
 
-    games.forEach(game => {
+    games.forEach((game, index) => {
       const card = document.createElement("div");
       card.className = "game-card";
       card.innerHTML = `
+        ${game.new ? '<div class="badge">Новинка</div>' : ''}
         <img src="${game.image}" alt="${game.title}">
         <div class="title">${game.title}</div>
-        <div class="desc">${game.description}</div>
-        <div class="price">💰 ${game.priceTon} TON</div>
-        <button class="buy-btn" onclick="buy('${game.title}', ${game.priceTon})">Купить</button>
       `;
+      card.onclick = () => openModal(index);
       container.appendChild(card);
     });
+
+    function openModal(index) {
+      const game = games[index];
+      document.getElementById("modal-image").src = game.image;
+      document.getElementById("modal-title").textContent = game.title;
+      document.getElementById("modal-desc").textContent = game.description;
+      document.getElementById("modal-price").textContent = `💰 ${game.priceTon} TON`;
+      document.getElementById("modal-buy").onclick = () => buy(game.title, game.priceTon);
+      modal.style.display = "block";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
 
     async function buy(gameTitle, priceTon) {
       try {
         const transaction = {
           validUntil: Math.floor(Date.now() / 1000) + 600,
           messages: [{
-            address: 'EQCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // <-- твой TON-кошелек
+            address: 'EQAIrAFcv8a8rU2eNUwZSn-Bwoiifx6uQ8P4wWZsnBxDKPZz', // <-- вставь свой TON-кошелек
             amount: (priceTon * 1e9).toFixed(0),
             payload: ''
           }]
